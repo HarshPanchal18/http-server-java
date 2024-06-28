@@ -34,7 +34,7 @@ public class Main {
 
                 OutputStream outputStream = clientSocket.getOutputStream();
 
-                // Striping URL from the HTTP req
+                // Striping URL from the HTTP request
                 String[] URL = HttpRequest.get(0).split(" ", 0);
                 if (URL[0].equals("POST")) {
                     StringBuffer data = new StringBuffer();
@@ -44,7 +44,7 @@ public class Main {
                     String body = data.toString();
                     Path path = Paths.get(directory, URL[1].split("/")[2]);
                     Files.write(path, body.getBytes());
-                    outputStream.write(("HTTP/1.1 201 Created" + CRLF + CRLF).getBytes(StandardCharsets.UTF_8));
+                    outputStream.write("HTTP/1.1 201 Created\r\n\r\n".getBytes(StandardCharsets.UTF_8));
 
                 } else {
                     if (URL[1].equals("/")) {
