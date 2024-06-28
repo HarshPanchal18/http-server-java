@@ -85,6 +85,8 @@ public class Main {
                     clientSocket.close();
                     System.out.println("accepted new connection");
                 }
+                outputStream.flush();
+                outputStream.close();
             }
         } catch (IOException e) {
             System.out.println("IOException: " + e.getMessage());
