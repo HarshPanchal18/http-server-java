@@ -39,7 +39,7 @@ public class Main {
                 String[] URL = HttpRequest.get(0).split(" ", 0);
 
                 if (URL[0].equals("POST")) {
-                    StringBuilder data = new StringBuilder();
+                    StringBuffer data = new StringBuffer();
                     while (bufferedReader.ready())
                         data.append(bufferedReader.read());
 
