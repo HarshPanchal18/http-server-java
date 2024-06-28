@@ -2,6 +2,7 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 
 public class Main {
@@ -10,6 +11,12 @@ public class Main {
         ServerSocket serverSocket = null;
         Socket clientSocket = null;
         String CRLF = "\r\n";
+
+        String directory = "";
+        if (args.length > 1 && args[0].equals("--directory")) {
+            directory = args[1];
+            System.out.println(directory);
+        }
 
         try {
             serverSocket = new ServerSocket(4221);
@@ -22,12 +29,14 @@ public class Main {
 
                 System.out.println(HttpRequest);
 
+                OutputStream outputStream = clientSocket.getOutputStream();
+
                 // Striping URL from the HTTP req
                 String[] URL = HttpRequest.get(0).split(" ", 0);
 
                 if (URL[1].equals("/")) {
                     String response = "HTTP/1.1 200 OK" + CRLF + CRLF;
-                    clientSocket.getOutputStream().write(response.getBytes());
+                    outputStream.write(response.getBytes());
                 } else if (URL[1].startsWith("/echo/")) {
                     String[] path = URL[1].split("/", 0);
                     String response =
@@ -42,7 +51,18 @@ public class Main {
                     String response =
                             "HTTP/1.1 200 OK" + CRLF + "Content-Type: text/plain" + CRLF + "Content-Length:" +
                                     user_agent[1].length() + CRLF + CRLF + user_agent[1];
-                    clientSocket.getOutputStream().write(response.getBytes());
+                    outputStream.write(response.getBytes());
+                } else if (URL[1].startsWith("/files")) {
+                    String filename = URL[1].split("/", 0)[2];
+                    File file = new File(directory, filename);
+                    System.out.println(file.toPath());
+
+                    if (file.exists()) {
+                        byte[] fileContent = Files.readAllBytes(file.toPath());
+                        String response = "HTTP/1.1 200 OK" + CRLF + "Content-Type: application/octet-stream" + CRLF +
+                                "Content-Length:" + fileContent.length + CRLF + CRLF + new String(fileContent);
+                        outputStream.write(response.getBytes());
+                    }
                 } else {
                     String response = "HTTP/1.1 404 Not Found" + CRLF + CRLF;
                     clientSocket.getOutputStream().write(response.getBytes());
