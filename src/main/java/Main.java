@@ -72,8 +72,8 @@ public class Main {
                         System.out.println(file.toPath());
                         if (file.exists()) {
                             byte[] fileContent = Files.readAllBytes(file.toPath()); // Reading byte content
-                            String response = "HTTP/1.1 200 OK" + CRLF + "Content-Type: application/octet-stream" + CRLF + "Content-Length: " +
-                                    fileContent.length + CRLF + new String(fileContent);
+                            String response = "HTTP/1.1 200 OK" + CRLF + "Content-Type: application/octet-stream" + CRLF +
+                                    "Content-Length: " + fileContent.length + CRLF + CRLF + new String(fileContent);
                             outputStream.write(response.getBytes(StandardCharsets.UTF_8));
                         } else {
                             String response = "HTTP/1.1 404 Not Found" + CRLF + CRLF;
