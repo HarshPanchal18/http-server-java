@@ -26,6 +26,14 @@ public class Main {
 
             if (HttpRequest[1].equals("/")) {
                 output.write(("HTTP/1.1 200 OK\r\n\r\n".getBytes()));
+            } else if (HttpRequest[1].startsWith("/echo/")) {
+                String message = HttpRequest[1].substring(6);
+                String header = String.format(
+                        "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s",
+                        message.length(),
+                        message
+                );
+                output.write(header.getBytes());
             } else {
                 output.write(("HTTP/1.1 404 Not Found\r\n\r\n".getBytes()));
             }
