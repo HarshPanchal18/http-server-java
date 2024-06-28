@@ -1,6 +1,7 @@
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.ArrayList;
 
 public class Main {
@@ -8,58 +9,61 @@ public class Main {
 
         ServerSocket serverSocket = null;
         Socket clientSocket = null;
+        String CRLF = "\r\n";
 
         try {
             serverSocket = new ServerSocket(4221);
             serverSocket.setReuseAddress(true);
 
-            // Since the tester restarts your program quite often, setting SO_REUSEADDR
-            // ensures that we don't run into 'Address already in use' errors
-            serverSocket.setReuseAddress(true);
-            clientSocket = serverSocket.accept(); // Wait for connection from client.
+            while (true) {
+                clientSocket = serverSocket.accept(); // Wait for connection from client.
+                // client side conversion of bytes into data.
+                ArrayList<String> HttpRequest = getHttpRequest(clientSocket);
 
-            InputStream input = clientSocket.getInputStream();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(input));
+                System.out.println(HttpRequest);
 
-            OutputStream output = clientSocket.getOutputStream();
+                // Striping URL from the HTTP req
+                String[] URL = HttpRequest.get(0).split(" ", 0);
 
-            String request;
-            ArrayList<String> HttpRequest = new ArrayList<>();
-            // read request completely HTTP requests don't end with EOF but with blank line.
-            while (!(request = reader.readLine()).isEmpty())
-                HttpRequest.add(request);
-
-            System.out.println(HttpRequest);
-
-            // Striping URL from the HTTP request
-            String[] URL = HttpRequest.get(0).split(" ", 0);
-
-            if (URL[1].equals("/")) {
-                output.write(("HTTP/1.1 200 OK\r\n\r\n".getBytes()));
-
-            } else if (URL[1].startsWith("/echo/")) {
-                String[] path = URL[1].split("/");
-                String response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length:" +
-                        path[2].length() + "\r\n\r\n" + path[2];
-                output.write(response.getBytes());
-
-            } else if (URL[1].startsWith("/user-agent")) {
-                String[] userAgent = new String[2];
-                for (String s : HttpRequest) {
-                    if (s.startsWith("User-Agent"))
-                        userAgent = s.split(": ");
+                if (URL[1].equals("/")) {
+                    String response = "HTTP/1.1 200 OK" + CRLF + CRLF;
+                    clientSocket.getOutputStream().write(response.getBytes());
+                } else if (URL[1].startsWith("/echo/")) {
+                    String[] path = URL[1].split("/", 0);
+                    String response =
+                            "HTTP/1.1 200 OK" + CRLF + "Content-Type: text/plain" + CRLF + "Content-Length:" + path[2].length() + CRLF + CRLF + path[2];
+                    clientSocket.getOutputStream().write(response.getBytes());
+                } else if (URL[1].startsWith("/user-agent")) {
+                    String[] user_agent = new String[2];
+                    for (String s : HttpRequest) {
+                        if (s.startsWith("User-Agent"))
+                            user_agent = s.split(": ");
+                    }
+                    String response =
+                            "HTTP/1.1 200 OK" + CRLF + "Content-Type: text/plain" + CRLF + "Content-Length:" +
+                                    user_agent[1].length() + CRLF + CRLF + user_agent[1];
+                    clientSocket.getOutputStream().write(response.getBytes());
+                } else {
+                    String response = "HTTP/1.1 404 Not Found" + CRLF + CRLF;
+                    clientSocket.getOutputStream().write(response.getBytes());
+                    clientSocket.close();
+                    System.out.println("accepted new connection");
                 }
-
-                String response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length:" +
-                        userAgent[1].length() + "\r\n\r\n" + userAgent[1];
-                output.write(response.getBytes());
-
-            } else {
-                output.write(("HTTP/1.1 404 Not Found\r\n\r\n".getBytes()));
             }
-
         } catch (IOException e) {
-            System.out.println("IOException: " + e.getMessage());
+            throw new RuntimeException(e);
         }
+    }
+
+    private static ArrayList<String> getHttpRequest(Socket clientSocket) throws IOException {
+        BufferedReader clientIn = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+        // Read the request
+        String req;
+        ArrayList<String> HttpRequest = new ArrayList<>();
+        // read request completely HTTP requests don't end with EOF but with blank line.
+        while (!(req = clientIn.readLine()).isEmpty())
+            HttpRequest.add(req);
+
+        return HttpRequest;
     }
 }
