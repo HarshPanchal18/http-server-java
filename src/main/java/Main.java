@@ -60,7 +60,7 @@ public class Main {
                     if (file.exists()) {
                         byte[] fileContent = Files.readAllBytes(file.toPath());
                         String response = "HTTP/1.1 200 OK" + CRLF + "Content-Type: application/octet-stream" + CRLF +
-                                "Content-Length:" + fileContent.length + CRLF + CRLF + new String(fileContent);
+                                "Content-Length: " + fileContent.length + CRLF + CRLF + new String(fileContent);
                         outputStream.write(response.getBytes());
                     }
                 } else {
