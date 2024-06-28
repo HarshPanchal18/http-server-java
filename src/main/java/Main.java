@@ -1,7 +1,6 @@
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -37,7 +36,6 @@ public class Main {
 
                 // Striping URL from the HTTP req
                 String[] URL = HttpRequest.get(0).split(" ", 0);
-
                 if (URL[0].equals("POST")) {
                     StringBuffer data = new StringBuffer();
                     while (bufferedReader.ready())
@@ -75,7 +73,7 @@ public class Main {
                             byte[] fileContent = Files.readAllBytes(file.toPath());
                             String response = "HTTP/1.1 200 OK" + CRLF + "Content-Type: application/octet-stream" + CRLF +
                                     "Content-Length: " + fileContent.length + CRLF + CRLF + new String(fileContent);
-                            outputStream.write(response.getBytes());
+                            outputStream.write(response.getBytes(StandardCharsets.UTF_8));
                         } else {
                             String response = "HTTP/1.1 404 Not Found" + CRLF + CRLF;
                             outputStream.write(response.getBytes());
@@ -88,9 +86,8 @@ public class Main {
                     System.out.println("accepted new connection");
                 }
             }
-        } catch (
-                IOException e) {
-            throw new RuntimeException(e);
+        } catch (IOException e) {
+            System.out.println("IOException: " + e.getMessage());
         }
     }
 
