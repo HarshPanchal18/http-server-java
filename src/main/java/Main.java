@@ -41,7 +41,7 @@ public class Main {
                 if (URL[0].equals("POST")) {
                     StringBuffer data = new StringBuffer();
                     while (bufferedReader.ready())
-                        data.append((char)bufferedReader.read());
+                        data.append((char) bufferedReader.read());
 
                     String body = data.toString();
                     Path path = Paths.get(directory, URL[1].split("/")[2]);
@@ -83,9 +83,9 @@ public class Main {
                     } else {
                         String response = "HTTP/1.1 404 Not Found" + CRLF + CRLF;
                         outputStream.write(response.getBytes());
-                        clientSocket.close();
-                        System.out.println("accepted new connection");
                     }
+                    clientSocket.close();
+                    System.out.println("accepted new connection");
                 }
             }
         } catch (
