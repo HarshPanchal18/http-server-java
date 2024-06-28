@@ -2,6 +2,7 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 
@@ -62,10 +63,13 @@ public class Main {
                         String response = "HTTP/1.1 200 OK" + CRLF + "Content-Type: application/octet-stream" + CRLF +
                                 "Content-Length: " + fileContent.length + CRLF + CRLF + new String(fileContent);
                         outputStream.write(response.getBytes());
+                    } else {
+                        String response = "HTTP/1.1 404 Not Found" + CRLF + CRLF;
+                        outputStream.write(response.getBytes());
                     }
                 } else {
                     String response = "HTTP/1.1 404 Not Found" + CRLF + CRLF;
-                    clientSocket.getOutputStream().write(response.getBytes());
+                    outputStream.write(response.getBytes());
                     clientSocket.close();
                     System.out.println("accepted new connection");
                 }
