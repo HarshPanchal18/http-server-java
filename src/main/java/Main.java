@@ -34,10 +34,10 @@ public class Main {
             // Striping URL from the HTTP request
             String[] URL = HttpRequest.get(0).split(" ", 0);
 
-            if (HttpRequest.get(1).equals("/")) {
+            if (URL[1].equals("/")) {
                 output.write(("HTTP/1.1 200 OK\r\n\r\n".getBytes()));
 
-            } else if (HttpRequest.get(1).startsWith("/echo/")) {
+            } else if (URL[1].startsWith("/echo/")) {
                 String[] path = URL[1].split("/");
                 String response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length:" +
                         path[2].length() + "\r\n\r\n" + path[2];
