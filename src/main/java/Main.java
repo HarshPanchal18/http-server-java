@@ -49,20 +49,20 @@ public class Main {
                 } else {
                     if (URL[1].equals("/")) {
                         String response = "HTTP/1.1 200 OK" + CRLF + CRLF;
-                        outputStream.write(response.getBytes());
+                        outputStream.write(response.getBytes(StandardCharsets.UTF_8));
                     } else if (URL[1].startsWith("/echo/")) {
                         String[] path = URL[1].split("/", 0);
                         String response = "HTTP/1.1 200 OK" + CRLF + "Content-Type: text/plain" + CRLF + "Content-Length:" +
                                 path[2].length() + CRLF + CRLF + path[2];
                         outputStream.write(response.getBytes());
                     } else if (URL[1].startsWith("/user-agent")) {
-                        String[] user_agent = new String[2];
+                        String[] userAgent = new String[2];
                         for (String s : HttpRequest)
                             if (s.startsWith("User-Agent"))
-                                user_agent = s.split(": ");
+                                userAgent = s.split(": ");
 
                         String response = "HTTP/1.1 200 OK" + CRLF + "Content-Type: text/plain" + CRLF + "Content-Length:" +
-                                user_agent[1].length() + CRLF + CRLF + user_agent[1];
+                                userAgent[1].length() + CRLF + CRLF + userAgent[1];
                         outputStream.write(response.getBytes());
                     } else if (URL[1].startsWith("/files")) {
                         String filename = URL[1].split("/", 0)[2];
@@ -85,8 +85,6 @@ public class Main {
                     clientSocket.close();
                     System.out.println("accepted new connection");
                 }
-                outputStream.flush();
-                outputStream.close();
             }
         } catch (IOException e) {
             System.out.println("IOException: " + e.getMessage());
