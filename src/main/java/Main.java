@@ -4,6 +4,8 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 
 public class Main {
@@ -26,6 +28,7 @@ public class Main {
             while (true) {
                 clientSocket = serverSocket.accept(); // Wait for connection from client.
                 // client side conversion of bytes into data.
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
                 ArrayList<String> HttpRequest = getHttpRequest(clientSocket);
 
                 System.out.println(HttpRequest);
@@ -66,6 +69,15 @@ public class Main {
                     } else {
                         String response = "HTTP/1.1 404 Not Found" + CRLF + CRLF;
                         outputStream.write(response.getBytes());
+                    }
+                } else if (URL[0].equals("POST")) {
+                    StringBuffer data = new StringBuffer();
+                    while (bufferedReader.ready()) {
+                        data.append(bufferedReader.read());
+                        String body = data.toString();
+                        Path path = Paths.get(directory, URL[1].split("/")[2]);
+                        Files.write(path, body.getBytes());
+                        outputStream.write(("HTTP/1.1 201 Created" + CRLF + CRLF).getBytes());
                     }
                 } else {
                     String response = "HTTP/1.1 404 Not Found" + CRLF + CRLF;
