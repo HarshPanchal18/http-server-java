@@ -97,7 +97,7 @@ public class Main {
         String request;
         ArrayList<String> HttpRequest = new ArrayList<>();
         // read request completely HTTP requests don't end with EOF but with blank line.
-        while (!(request = bufferedReader.readLine()).isEmpty())
+        while (!(request = bufferedReader.readLine()).equals(""))
             HttpRequest.add(request);
 
         return HttpRequest;
