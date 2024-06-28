@@ -44,7 +44,8 @@ public class Main {
                     String body = data.toString();
                     Path path = Paths.get(directory, URL[1].split("/")[2]);
                     Files.write(path, body.getBytes());
-                    outputStream.write("HTTP/1.1 201 Created\r\n\r\n".getBytes(StandardCharsets.UTF_8));
+                    String response = "HTTP/1.1 201 Created" + CRLF + CRLF;
+                    outputStream.write(response.getBytes(StandardCharsets.UTF_8));
 
                 } else {
                     if (URL[1].equals("/")) {
@@ -99,6 +100,8 @@ public class Main {
         // read request completely HTTP requests don't end with EOF but with blank line.
         while (!(request = bufferedReader.readLine()).equals(""))
             HttpRequest.add(request);
+
+        bufferedReader.close();
 
         return HttpRequest;
     }
