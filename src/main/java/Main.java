@@ -5,14 +5,17 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.cert.CRL;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class Main {
     public static void main(String[] args) {
         ServerSocket serverSocket = null;
         Socket clientSocket = null;
         String CRLF = "\r\n";
+        String http200 = "HTTP/1.1 200 OK";
+        String http404 = "HTTP/1.1 404 Not Found";
+
         String directory = "";
         if (args.length > 1 && args[0].equals("--directory")) {
             directory = args[1];
@@ -49,13 +52,26 @@ public class Main {
                     outputStream.write(("HTTP/1.1 201 Created" + CRLF + CRLF).getBytes(StandardCharsets.UTF_8));
                 } else {
                     if (URL[1].equals("/")) {
-                        String response = "HTTP/1.1 200 OK" + CRLF + CRLF;
+                        String response = http200 + CRLF + CRLF;
                         outputStream.write(response.getBytes(StandardCharsets.UTF_8));
 
                     } else if (URL[1].startsWith("/echo/")) {
                         String[] path = URL[1].split("/", 0);
-                        String response = "HTTP/1.1 200 OK" + CRLF + "Content-Type: text/plain" + CRLF +
-                                "Content-Length:" + path[2].length() + CRLF + CRLF + path[2];
+                        String encoding = "None";
+                        String[] accepted = {"gzip", "compress", "deflate", "br", "zstd", "identity", "*"};
+
+                        for (String s : HttpRequest)
+                            if (s.startsWith("Accept-Encoding"))
+                                encoding = s.split(": ")[1];
+
+                        System.out.println(Arrays.asList(accepted).contains(encoding));
+                        String response;
+                        if (encoding != "None" && Arrays.asList(accepted).contains(encoding))
+                            response = http200 + CRLF + "Content-Encoding:" + encoding + CRLF + "Content-Type: text/plain" + CRLF +
+                                    "Content-Length:" + path[2].length() + CRLF + CRLF + path[2];
+                        else
+                            response = http200 + CRLF + "Content-Type: text/plain" + CRLF +
+                                    "Content-Length:" + path[2].length() + CRLF + CRLF + path[2];
                         outputStream.write(response.getBytes());
                     } else if (URL[1].startsWith("/user-agent")) {
                         String[] userAgent = new String[2];
@@ -63,25 +79,27 @@ public class Main {
                             if (s.startsWith("User-Agent"))
                                 userAgent = s.split(": ");
 
-                        String response = "HTTP/1.1 200 OK" + CRLF + "Content-Type: text/plain" + CRLF +
+                        String response = http200 + CRLF + "Content-Type: text/plain" + CRLF +
                                 "Content-Length:" + userAgent[1].length() + CRLF + CRLF + userAgent[1];
                         outputStream.write(response.getBytes());
-                    } else if (URL[1].startsWith("/files")) {
-                        String filename = URL[1].split("/", 0)[2];
-                        File file = new File(directory, filename);
-                        System.out.println(file.toPath());
-                        if (file.exists()) {
-                            byte[] fileContent = Files.readAllBytes(file.toPath()); // Reading byte content
-                            String response = "HTTP/1.1 200 OK" + CRLF + "Content-Type: application/octet-stream" + CRLF +
-                                    "Content-Length: " + fileContent.length + CRLF + CRLF + new String(fileContent);
-                            outputStream.write(response.getBytes(StandardCharsets.UTF_8));
+                    } else {
+                        if (URL[1].startsWith("/files")) {
+                            String filename = URL[1].split("/", 0)[2];
+                            File file = new File(directory, filename);
+                            System.out.println(file.toPath());
+                            if (file.exists()) {
+                                byte[] fileContent = Files.readAllBytes(file.toPath()); // Reading byte content
+                                String response = http200 + CRLF + "Content-Type: application/octet-stream" + CRLF +
+                                        "Content-Length: " + fileContent.length + CRLF + CRLF + new String(fileContent);
+                                outputStream.write(response.getBytes(StandardCharsets.UTF_8));
+                            } else {
+                                String response = http404 + CRLF + CRLF;
+                                outputStream.write(response.getBytes());
+                            }
                         } else {
-                            String response = "HTTP/1.1 404 Not Found" + CRLF + CRLF;
+                            String response = http404 + CRLF + CRLF;
                             outputStream.write(response.getBytes());
                         }
-                    } else {
-                        String response = "HTTP/1.1 404 Not Found" + CRLF + CRLF;
-                        outputStream.write(response.getBytes());
                     }
                     clientSocket.close();
                     System.out.println("accepted new connection");
