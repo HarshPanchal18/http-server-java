@@ -57,21 +57,18 @@ public class Main {
 
                     } else if (URL[1].startsWith("/echo/")) {
                         String[] path = URL[1].split("/", 0);
-                        String encoding = "None";
-                        String[] accepted = {"gzip", "compress", "deflate", "br", "zstd", "identity", "*"};
+                        String response = http200 + CRLF + CRLF + path[2].length() + CRLF + CRLF + path[2];
 
                         for (String s : HttpRequest)
-                            if (s.startsWith("Accept-Encoding"))
-                                encoding = s.split(": ")[1];
+                            if (s.startsWith("Accept-Encoding")) {
+                                String[] encoding = s.split(": ")[1].split(",");
+                                for (String encode : encoding) {
+                                    if (encode.trim().startsWith("gzip"))
+                                        response = http200 + CRLF + "Content-Encoding:gzip" + CRLF + "Content-Type: text/plain" + CRLF +
+                                                "Content-Length:" + path[2].length() + CRLF + CRLF + path[2];
+                                }
+                            }
 
-                        System.out.println(Arrays.asList(accepted).contains(encoding));
-                        String response;
-                        if (encoding != "None" && Arrays.asList(accepted).contains(encoding))
-                            response = http200 + CRLF + "Content-Encoding:" + encoding + CRLF + "Content-Type: text/plain" + CRLF +
-                                    "Content-Length:" + path[2].length() + CRLF + CRLF + path[2];
-                        else
-                            response = http200 + CRLF + "Content-Type: text/plain" + CRLF +
-                                    "Content-Length:" + path[2].length() + CRLF + CRLF + path[2];
                         outputStream.write(response.getBytes());
                     } else if (URL[1].startsWith("/user-agent")) {
                         String[] userAgent = new String[2];
