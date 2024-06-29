@@ -57,9 +57,10 @@ public class Main {
 
                     } else if (URL[1].startsWith("/echo/")) {
                         String[] path = URL[1].split("/", 0);
-                        String response = http200 + CRLF + CRLF + path[2].length() + CRLF + CRLF + path[2];
+                        String response = http200 + CRLF + "Content-Type: text/plain" + CRLF +
+                                "Content-Length:" + path[2].length() + CRLF + CRLF + path[2];
 
-                        for (String s : HttpRequest)
+                        for (String s : HttpRequest) {
                             if (s.startsWith("Accept-Encoding")) {
                                 String[] encoding = s.split(": ")[1].split(",");
                                 for (String encode : encoding) {
@@ -68,6 +69,7 @@ public class Main {
                                                 "Content-Length:" + path[2].length() + CRLF + CRLF + path[2];
                                 }
                             }
+                        }
 
                         outputStream.write(response.getBytes());
                     } else if (URL[1].startsWith("/user-agent")) {
