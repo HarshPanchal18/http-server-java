@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.zip.GZIPOutputStream;
 
 public class Main {
     public static void main(String[] args) {
@@ -57,6 +58,7 @@ public class Main {
 
                     } else if (URL[1].startsWith("/echo/")) {
                         String[] path = URL[1].split("/", 0);
+                        boolean flag = false;
                         String response = http200 + CRLF + "Content-Type: text/plain" + CRLF +
                                 "Content-Length:" + path[2].length() + CRLF + CRLF + path[2];
 
@@ -64,14 +66,26 @@ public class Main {
                             if (s.startsWith("Accept-Encoding")) {
                                 String[] encoding = s.split(": ")[1].split(",");
                                 for (String encode : encoding) {
-                                    if (encode.trim().startsWith("gzip"))
+                                    if (encode.trim().startsWith("gzip")) {
+                                        // Compress the response body using gzip
+                                        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                                        try (GZIPOutputStream gzipOutputStream = new GZIPOutputStream(byteArrayOutputStream)) {
+                                            gzipOutputStream.write(path[2].getBytes(StandardCharsets.UTF_8));
+                                        }
+                                        byte[] gzipData = byteArrayOutputStream.toByteArray();
                                         response = http200 + CRLF + "Content-Encoding:gzip" + CRLF + "Content-Type: text/plain" + CRLF +
-                                                "Content-Length:" + path[2].length() + CRLF + CRLF + path[2];
+                                                "Content-Length:" + gzipData.length + CRLF + CRLF;
+                                        flag = true;
+                                        outputStream.write(response.getBytes());
+                                        outputStream.write(gzipData);
+                                    }
                                 }
                             }
                         }
 
-                        outputStream.write(response.getBytes());
+                        if (flag == false)
+                            outputStream.write(response.getBytes());
+
                     } else if (URL[1].startsWith("/user-agent")) {
                         String[] userAgent = new String[2];
                         for (String s : HttpRequest)
